@@ -72,6 +72,20 @@ func New(r io.Reader) (fs.FS, error) {
 		if dir == "." {
 			tfs.rootEntries = append(tfs.rootEntries, e)
 		} else {
+
+			pieces := strings.Split(dir, "/")
+			current := ""
+			for _, gram := range pieces {
+				current = path.Join(current, gram)
+				if _, ok := tfs.files[current]; !ok {
+					tfs.files[current] = &entry{&tar.Header{
+						Typeflag: tar.TypeDir,
+						Name:     current,
+					}, []byte{}, nil}
+				}
+				tfs.files[current].entries = append(tfs.files[current].entries, e)
+			}
+
 			if parent, ok := tfs.files[path.Dir(name)]; ok {
 				parent.entries = append(parent.entries, e)
 			}
